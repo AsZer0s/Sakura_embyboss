@@ -160,14 +160,30 @@ async def rn_link_one(tg: int, times, count, days: int, method: str):
 
 
 async def cr_link_two(tg: int, for_tg, days: int):
-    code_list = []
+    """
+    创建赠送资格注册码
+    :param tg: 赠送者的 tg_id
+    :param for_tg: 接收者的 tg_id
+    :param days: 有效天数
+    :return: 注册链接
+    """
+    from bot.sql_helper.sql_code import Code
+    from bot.sql_helper import Session
+    
     invite_code = await pwd_create(11)
     uid = f'{for_tg}-{invite_code}'
-    code_list.append(uid)
-    link = f't.me/{bot_name}?start={uid}'
-    if sql_add_code(code_list, tg, days) is False:
-        return None
-    return link
+    
+    # 使用 Session 存储注册码，并设置 for_tg 字段
+    with Session() as session:
+        try:
+            code_obj = Code(code=uid, tg=tg, us=days, for_tg=for_tg)
+            session.add(code_obj)
+            session.commit()
+            link = f't.me/{bot_name}?start={uid}'
+            return link
+        except:
+            session.rollback()
+            return None
 
 
 from datetime import datetime, timedelta

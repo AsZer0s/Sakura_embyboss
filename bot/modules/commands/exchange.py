@@ -79,6 +79,10 @@ async def rgs_code(_, msg, register_code):
             # 在 UPDATE 语句中添加一个条件，只有当注册码未被使用时，才更新数据。这样，如果有两个用户同时尝试使用同一条注册码，只有一个用户的 UPDATE 语句会成功，因为另一个用户的 UPDATE 语句会发现注册码已经被使用。
             r = session.query(Code).filter(Code.code == register_code).with_for_update().first()
             if not r: return await sendMessage(msg, "⛔ **你输入了一个错误de注册码，请确认好重试。**")
+            
+            # 安全检查：验证赠送资格注册码的接收者
+            if r.for_tg is not None and r.for_tg != msg.from_user.id:
+                return await sendMessage(msg, "⛔ **此注册码不是为您准备的，无法使用。**")
             re = session.query(Code).filter(Code.code == register_code, Code.used.is_(None)).with_for_update().update(
                 {Code.used: msg.from_user.id, Code.usedtime: datetime.now()})
             session.commit()  # 必要的提交。否则失效

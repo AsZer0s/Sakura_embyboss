@@ -19,7 +19,7 @@ cache = Cache()
 
 class Code(Base):
     """
-    register_code表，code主键，tg,us,used,used_time
+    register_code表，code主键，tg,us,used,used_time,for_tg
     """
 
     __tablename__ = "Rcode"
@@ -28,6 +28,7 @@ class Code(Base):
     us = Column(Integer)
     used = Column(BigInteger, nullable=True)
     usedtime = Column(DateTime, nullable=True)
+    for_tg = Column(BigInteger, nullable=True)  # 接收者的 tg_id，用于赠送资格时的鉴权
 
 
 Code.__table__.create(bind=engine, checkfirst=True)
